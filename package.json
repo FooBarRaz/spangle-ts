@@ -4,7 +4,8 @@
   "description": "A library for handy TypeScript decorators",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "jest"
   },
   "keywords": [
     "typescript",
@@ -13,6 +14,16 @@
   "author": "Raz Ali",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^26.0.19",
+    "@types/json-stringify-safe": "^5.0.0",
+    "@types/lodash.omit": "^4.5.6",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
     "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "json-stringify-safe": "^5.0.1",
+    "lodash.omit": "^4.5.0",
+    "reflect-metadata": "^0.1.13"
   }
 }

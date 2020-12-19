@@ -93,7 +93,7 @@ const handleLogArgs = (fullMethodName: string, args: any[], target: any, propert
             NO_LOG_KEY,
             target,
             propertyKey
-        )
+        ) || [];
 
         loggableArgs = args.filter((_, index) => !forbiddenParams.includes(index));
 

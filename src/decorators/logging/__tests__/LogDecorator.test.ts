@@ -1,4 +1,4 @@
-import { log } from '../LogDecorator';
+import log from '../LogDecorator';
 
 class TestClass {
     constructor(private returnValue?: any) {
@@ -8,16 +8,16 @@ class TestClass {
     testMethod(...args: any) {
         return this.returnValue;
     }
-
-    @log({logArgs: false})
-    testNoLogArgs(...args: any) {
-        return this.returnValue;
-    }
-
-    @log({logArgs: [0, 2, 3]})
-    testNoLogSecondArg(...args: any) {
-        return this.returnValue;
-    }
+    //
+    // @log({logArgs: false})
+    // testNoLogArgs(...args: any) {
+    //     return this.returnValue;
+    // }
+    //
+    // @log({logArgs: [0, 2, 3]})
+    // testNoLogSecondArg(...args: any) {
+    //     return this.returnValue;
+    // }
 
 }
 
@@ -56,37 +56,36 @@ describe(`Log Decorator`, () => {
 
     });
 
-    // describe('when method returns a value', () => {
-    //
-    //
-    //     it('should log string return value', () => {
-    //         testObjectInstance = new TestClass('something');
-    //         testObjectInstance.testMethod('foo');
-    //
-    //         expect(infoLoggerSpy).to.have.been.calledWith('TestClass.testMethod returned: something');
-    //     });
-    //
-    //     it('should log object return value', () => {
-    //         testObjectInstance = new TestClass({foo: "bar"});
-    //         testObjectInstance.testMethod('foo');
-    //
-    //         expect(infoLoggerSpy).to.have.been.calledWith('TestClass.testMethod returned: {"foo":"bar"}');
-    //     });
-    //
-    // });
-    //
+    describe('when method returns a value', () => {
+
+        it('should log string return value', () => {
+            testObjectInstance = new TestClass('something');
+            testObjectInstance.testMethod('foo');
+
+            expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: something');
+        });
+
+        it('should log object return value', () => {
+            testObjectInstance = new TestClass({foo: "bar"});
+            testObjectInstance.testMethod('foo');
+
+            expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: {"foo":"bar"}');
+        });
+
+    });
+
     // describe('when method returns a promise', () => {
     //     it('should log resolved result', async () => {
     //         testObjectInstance = new TestClass(Promise.resolve({foo: "bar"}));
     //         await testObjectInstance.testMethod('foo');
     //
-    //         expect(infoLoggerSpy).to.have.been.calledWith('TestClass.testMethod returned: {"foo":"bar"}');
+    //         expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: {"foo":"bar"}');
     //     });
     //
     //     it('should log rejected result', async () => {
     //         testObjectInstance = new TestClass(Promise.reject(Error("bad news")));
     //         await expect(testObjectInstance.testMethod("foo")).to.eventually.be.rejected;
-    //         expect(errorLoggerSpy).to.have.been.calledWith('TestClass.testMethod threw error: bad news');
+    //         expect(errorLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod threw error: bad news');
     //     });
     // });
     //
@@ -96,7 +95,7 @@ describe(`Log Decorator`, () => {
     //             testObjectInstance = new TestClass({foo: 'bar'});
     //             testObjectInstance.testNoLogArgs('hello');
     //
-    //             expect(infoLoggerSpy).not.to.have.been.calledWithMatch('hello');
+    //             expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('hello');
     //         });
     //     });
     //
@@ -109,11 +108,11 @@ describe(`Log Decorator`, () => {
     //         });
     //
     //         it('should log arguments at given indices', () => {
-    //             expect(infoLoggerSpy).to.have.been.calledWithMatch('called with args: ["arg0","arg2","arg3"]');
+    //             expect(consoleLoggerSpy).toHaveBeenCalledWithMatch('called with args: ["arg0","arg2","arg3"]');
     //         });
     //
     //         it('should not log arguments not at given indices', () => {
-    //             expect(infoLoggerSpy).not.to.have.been.calledWithMatch('arg1');
+    //             expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('arg1');
     //         });
     //
     //     });
@@ -147,8 +146,8 @@ describe(`Log Decorator`, () => {
     //                     (testObjectInstance as NoLogParamFilterTestClass).testOmitFirstArg(
     //                         "Don't log this", "Log this");
     //
-    //                     expect(infoLoggerSpy).not.to.have.been.calledWithMatch("Don't log this");
-    //                     expect(infoLoggerSpy).to.have.been.calledWithMatch("Log this");
+    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch("Don't log this");
+    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch("Log this");
     //                 });
     //
     //             });
@@ -160,10 +159,10 @@ describe(`Log Decorator`, () => {
     //                         {data: {secret: 'some-other-secret'}, nonSecret: 'some-public-value'}
     //                     );
     //
-    //                     expect(infoLoggerSpy).to.have.been.calledWithMatch('bar');
-    //                     expect(infoLoggerSpy).to.have.been.calledWithMatch('some-public-value');
-    //                     expect(infoLoggerSpy).not.to.have.been.calledWithMatch('foo');
-    //                     expect(infoLoggerSpy).not.to.have.been.calledWithMatch('some-other-secret');
+    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch('bar');
+    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch('some-public-value');
+    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('foo');
+    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('some-other-secret');
     //                 });
     //             });
     //         });

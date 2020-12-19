@@ -12,7 +12,7 @@
     "decorators"
   ],
   "author": "Raz Ali",
-  "license": "ISC",
+  "license": "GPL 3.0",
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "@types/json-stringify-safe": "^5.0.0",

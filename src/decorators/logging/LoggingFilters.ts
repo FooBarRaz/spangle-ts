@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 
-export const NO_LOG_KEY = Symbol('noLog');
+export const NO_LOG_KEY = Symbol('logExclude');
+export const OMIT_PATH_KEY = Symbol('omitPath');
 
-
-export const noLog = (
+export const logExclude = (
     target: any,
     propertyKey: string | symbol,
     parameterIndex: number) => {
@@ -16,5 +16,23 @@ export const noLog = (
         target,
         propertyKey
     );
+}
+
+export const logOmitPaths = (paths: string[]) => {
+   return (target: any,
+           propertyKey: string | symbol,
+           parameterIndex: number) => {
+
+       const existingRestrictedParams: {number: string[]}  = Reflect.getOwnMetadata(OMIT_PATH_KEY, target, propertyKey) || {};
+
+       existingRestrictedParams[parameterIndex] = paths;
+
+       Reflect.defineMetadata(
+           OMIT_PATH_KEY,
+           existingRestrictedParams,
+           target,
+           propertyKey
+       );
+   }
 }
 

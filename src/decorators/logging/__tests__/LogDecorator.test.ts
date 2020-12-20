@@ -1,5 +1,6 @@
 import faker from 'faker';
 import { createDecorator } from '../LogDecorator'
+import { logExclude, logOmitPaths } from '../LoggingFilters';
 
 
 describe(`Log Decorator`, () => {
@@ -30,7 +31,8 @@ describe(`Log Decorator`, () => {
 
     }
 
-    let testObjectInstance: TestClass
+    let testObjectInstance: any;
+
     beforeEach(() => {
         consoleLoggerSpy.mockReset()
         errorLoggerSpy.mockReset()
@@ -128,54 +130,103 @@ describe(`Log Decorator`, () => {
     //
     //     })
     //
-    //     describe('key filters', () => {
-    //
-    //         class KeyFilterTestClass extends TestClass {
-    //             @log({
-    //                 keyFilters: [{
-    //                     target: 'args',
-    //                     filterAction: 'omit',
-    //                     paths: ['data.secret']
-    //                 }]
-    //             })
-    //             testOmitArgSecret(...args: any) {
-    //             }
-    //         }
-    //
-    //         describe('for arguments', () => {
-    //             describe('noLog', () => {
-    //
-    //                 class NoLogParamFilterTestClass extends TestClass {
-    //                     @log()
-    //                     testOmitFirstArg(@noLog firstArg: any, secondArg: any) {
-    //                     }
-    //
-    //                 }
-    //
-    //                 it('should ', () => {
-    //                     testObjectInstance = new NoLogParamFilterTestClass()
-    //                     (testObjectInstance as NoLogParamFilterTestClass).testOmitFirstArg(
-    //                         "Don't log this", "Log this")
-    //
-    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch("Don't log this")
-    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch("Log this")
-    //                 })
-    //
-    //             })
-    //             describe('omit', () => {
-    //                 it('should omit any matching keys on an argument', () => {
-    //                     testObjectInstance = new KeyFilterTestClass()
-    //                     (testObjectInstance as KeyFilterTestClass).testOmitArgSecret(
-    //                         {data: {secret: 'foo', nonSecret: 'bar'}},
-    //                         {data: {secret: 'some-other-secret'}, nonSecret: 'some-public-value'}
-    //                     )
-    //
-    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch('bar')
-    //                     expect(consoleLoggerSpy).toHaveBeenCalledWithMatch('some-public-value')
-    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('foo')
-    //                     expect(consoleLoggerSpy).not.toHaveBeenCalledWithMatch('some-other-secret')
-    //                 })
-    //             })
-    //         })
-    //     })
+    describe('key filters', () => {
+
+        class KeyFilterTestClass extends TestClass {
+            @log({
+                keyFilters: [{
+                    target: 'args',
+                    filterAction: 'omit',
+                    paths: ['data.secret']
+                }]
+            })
+            testOmitArgSecret(...args: any) {
+            }
+        }
+
+        describe('for arguments', () => {
+            describe('logExclude', () => {
+
+                class NoLogParamFilterTestClass extends TestClass {
+                    @log()
+                    testOmitFirstArg(@logExclude firstArg: any, secondArg: any) {
+                    }
+
+                }
+
+                beforeEach(() => {
+                    new NoLogParamFilterTestClass()
+                        .testOmitFirstArg("Don't log this", "Log this")
+                });
+
+                describe('when param is marked with logExclude annotation', () => {
+                    it('should not get logged', () => {
+                        expect(consoleLoggerSpy).not.toHaveBeenCalledWith(expect.stringMatching("Don't log this"))
+                        expect(consoleLoggerSpy).toHaveBeenCalledWith(expect.stringMatching("Log this"))
+                    })
+                });
+
+                describe('when param is not marked with logExclude annotation', () => {
+                    it('should get logged', () => {
+                        expect(consoleLoggerSpy).toHaveBeenCalledWith(expect.stringMatching("Log this"))
+                    })
+                });
+
+            })
+
+            describe('logOmitPaths', () => {
+                class LogOmitPathsTestClass extends TestClass {
+                    @log()
+                    testOmitPathsFromFirstArg(@logOmitPaths([ 'someKey.lowSecret']) firstArg: any, secondArg: any) {
+                    }
+
+                }
+
+                let forbiddenKey: string;
+
+                beforeEach(() => {
+                    forbiddenKey = faker.random.word();
+                    const arg = {
+                        // topSecret: `${forbiddenKey}-top-secret`,
+                        someKey: {
+                            lowSecret: `${forbiddenKey}-low-secret`,
+                            allowableValue: 'allowed-bar'
+                        },
+                        allowableValue: 'allowed-foo'
+                    }
+                    new LogOmitPathsTestClass()
+                        .testOmitPathsFromFirstArg(arg, "Log this")
+                });
+
+                    it('should not log any forbidden paths', () => {
+                        expect(consoleLoggerSpy).not.toHaveBeenCalledWith(expect.stringMatching(forbiddenKey))
+                    })
+
+                describe('when param is not marked with logExclude annotation', () => {
+                    it('should get logged', () => {
+                        expect(consoleLoggerSpy).toHaveBeenCalledWith(expect.stringMatching("Log this"))
+                    })
+                });
+
+            })
+
+            describe('omit key filter', () => {
+                beforeEach(() => {
+
+                })
+                it('should omit any matching keys on an argument', () => {
+                    testObjectInstance = new KeyFilterTestClass();
+                    (testObjectInstance as KeyFilterTestClass).testOmitArgSecret(
+                        {data: {secret: 'foo', nonSecret: 'bar'}},
+                        {data: {secret: 'some-other-secret'}, nonSecret: 'some-public-value'}
+                    )
+
+                    expect(consoleLoggerSpy).toHaveBeenCalledWith(expect.stringMatching('bar'))
+                    expect(consoleLoggerSpy).toHaveBeenCalledWith(expect.stringMatching('some-public-value'))
+                    expect(consoleLoggerSpy).not.toHaveBeenCalledWith(expect.stringMatching('foo'))
+                    expect(consoleLoggerSpy).not.toHaveBeenCalledWith(expect.stringMatching('some-other-secret'))
+                })
+            })
+        })
+    })
 })

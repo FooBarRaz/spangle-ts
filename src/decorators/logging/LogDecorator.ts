@@ -1,5 +1,5 @@
 import _omit from 'lodash.omit';
-import { NO_LOG_KEY } from './LoggingFilters';
+import { NO_LOG_KEY, OMIT_PATH_KEY } from './LoggingFilters';
 
 type KeyFilters = {
     target: 'args' | 'returnValue' | 'exceptions';
@@ -63,14 +63,35 @@ export class LogDecorator {
                 }
             }
 
-            // handle noLog parameter decorator
-            const forbiddenParams: number[] = Reflect.getOwnMetadata(
+            // handle logExclude parameter decorator
+            const entirelyForbiddenParams: number[] = Reflect.getOwnMetadata(
                 NO_LOG_KEY,
                 target,
                 propertyKey
             ) || [];
 
-            loggableArgs = args.filter((_, index) => !forbiddenParams.includes(index));
+
+            loggableArgs = args.filter((_, index) => !entirelyForbiddenParams.includes(index));
+
+            // handle omitPaths parameter decorator
+            const partiallyForbiddenParams: {number: string[]} = Reflect.getOwnMetadata(
+                OMIT_PATH_KEY,
+                target,
+                propertyKey
+            );
+            if (partiallyForbiddenParams) {
+                loggableArgs = loggableArgs
+                    .map(arg => {
+                        const originalIndexOfArg = args.indexOf(arg)
+                        // check if an omission criteria exists for that argument at its original index
+
+                        if (Object.keys(partiallyForbiddenParams).includes(args.indexOf(arg).toString())) {
+                            let partiallyForbiddenParam = partiallyForbiddenParams[originalIndexOfArg];
+                            arg = _omit(arg, partiallyForbiddenParam)
+                        }
+                        return arg;
+                    })
+            }
 
             this.logArgs(fullMethodName, loggableArgs);
         }

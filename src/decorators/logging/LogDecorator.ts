@@ -101,18 +101,18 @@ export class LogDecorator {
     private logArgs(methodName: string, args: any) {
         try {
             const argsString = this.stringify(args);
-            console.log(`${methodName} called with args: ${argsString}`);
+            this.infoLogger(`${methodName} called with args: ${argsString}`);
         } catch (e) {
-            console.log(`${methodName} called`);
+            this.infoLogger(`${methodName} called`);
         }
     };
 
     private logReturnValue(methodName: string, result: any) {
-        console.log(`${methodName} returned: ${this.stringify(result)}`);
+        this.infoLogger(`${methodName} returned: ${this.stringify(result)}`);
     };
 
     private logException(methodName: string, exception: any) {
-        console.error(`${methodName} threw error: ${this.stringify(exception?.message || exception)}`);
+        this.errorLogger(`${methodName} threw error: ${this.stringify(exception?.message || exception)}`);
     };
 
     private wrapPromiseAndLogResult(methodName: string, promise: Promise<unknown>) {

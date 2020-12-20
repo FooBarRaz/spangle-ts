@@ -4,8 +4,10 @@ import { createDecorator } from '../LogDecorator'
 
 describe(`Log Decorator`, () => {
     let consoleLoggerSpy: jest.Mock<any, any> = jest.fn()
+    let errorLoggerSpy: jest.Mock<any, any> = jest.fn()
 
-    const log = createDecorator({loggers: { info: consoleLoggerSpy }})
+    const log = createDecorator({loggers: {info: consoleLoggerSpy, error: errorLoggerSpy}})
+
     class TestClass {
         constructor(private returnValue?: any) {
         }
@@ -14,6 +16,7 @@ describe(`Log Decorator`, () => {
         testMethod(...args: any) {
             return this.returnValue
         }
+
         //
         // @log({logArgs: false})
         // testNoLogArgs(...args: any) {
@@ -26,7 +29,12 @@ describe(`Log Decorator`, () => {
         // }
 
     }
+
     let testObjectInstance: TestClass
+    beforeEach(() => {
+        consoleLoggerSpy.mockReset()
+        errorLoggerSpy.mockReset()
+    });
 
     describe('when method called with args', () => {
 
@@ -45,7 +53,7 @@ describe(`Log Decorator`, () => {
             const arg = faker.random.words(5)
             testObjectInstance.testMethod({foo: arg})
 
-            expect(consoleLoggerSpy).toHaveBeenCalledWith(`TestClass.testMethod called with args: [{"foo": "${arg}"}]`)
+            expect(consoleLoggerSpy).toHaveBeenCalledWith(`TestClass.testMethod called with args: [{"foo":"${arg}"}]`)
         })
 
         it('should log array arg', () => {
@@ -58,10 +66,11 @@ describe(`Log Decorator`, () => {
     describe('when method returns a value', () => {
 
         it('should log string return value', () => {
-            testObjectInstance = new TestClass('something')
+            const expectedReturnValue = faker.random.words(5)
+            testObjectInstance = new TestClass(expectedReturnValue)
             testObjectInstance.testMethod('foo')
 
-            expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: something')
+            expect(consoleLoggerSpy).toHaveBeenCalledWith(`TestClass.testMethod returned: ${expectedReturnValue}`)
         })
 
         it('should log object return value', () => {
@@ -73,20 +82,23 @@ describe(`Log Decorator`, () => {
 
     })
 
-    // describe('when method returns a promise', () => {
-    //     it('should log resolved result', async () => {
-    //         testObjectInstance = new TestClass(Promise.resolve({foo: "bar"}))
-    //         await testObjectInstance.testMethod('foo')
-    //
-    //         expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: {"foo":"bar"}')
-    //     })
-    //
-    //     it('should log rejected result', async () => {
-    //         testObjectInstance = new TestClass(Promise.reject(Error("bad news")))
-    //         await expect(testObjectInstance.testMethod("foo")).to.eventually.be.rejected
-    //         expect(errorLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod threw error: bad news')
-    //     })
-    // })
+    describe('when method returns a promise', () => {
+        it('should log resolved result', async () => {
+            testObjectInstance = new TestClass(Promise.resolve({foo: "bar"}))
+            await testObjectInstance.testMethod('foo')
+
+            expect(consoleLoggerSpy).toHaveBeenCalledWith('TestClass.testMethod returned: {"foo":"bar"}')
+        })
+
+        it('should log rejected result', async () => {
+            const someError = faker.random.words(4)
+            testObjectInstance = new TestClass(Promise.reject(Error(someError)))
+            await expect(testObjectInstance.testMethod("foo")).rejects.toThrow()
+                .then(() =>
+                    expect(errorLoggerSpy).toHaveBeenCalledWith(`TestClass.testMethod threw error: ${someError}`)
+                )
+        })
+    })
     //
     // describe('log options', () => {
     //     describe('when logArgs is false', () => {
